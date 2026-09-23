@@ -466,9 +466,15 @@ function renderEntitlement(){
     const cert=String(d.certPrefix*100+i+1).padStart(10,'0');
     const file=String(d.filePrefix+i);
     const units=Math.round(d.units/d.files) || 1;
-    rows+=`<tr><td>${file}</td><td>${cert}</td><td>Maybank</td><td>•••• •••• 1234</td><td><div class="table-actions"><button class="small-btn" onclick="viewCert('${cert}','${file}',${units})">View Certificate</button><button class="small-btn primary" onclick="toast('Certificate download simulated')">Download</button></div></td></tr>`;
+    rows+=`<tr><td>${file}</td><td>${cert}</td><td>Maybank</td><td><span id="bankAcc${i}">•••• •••• 1234</span> <button class="link-btn" onclick="toggleEntBank(${i})" aria-label="Show/hide account number">👁</button></td><td><div class="table-actions"><button class="small-btn" onclick="viewCert('${cert}','${file}',${units})">View Certificate</button><button class="small-btn primary" onclick="toast('Certificate download simulated')">Download</button></div></td></tr>`;
   }
   document.getElementById('entTable').querySelector('tbody').innerHTML=rows;
+  entBankRevealed=[];
+}
+let entBankRevealed=[];
+function toggleEntBank(i){
+  entBankRevealed[i]=!entBankRevealed[i];
+  document.getElementById('bankAcc'+i).textContent=entBankRevealed[i]?'5123 4567 1234':'•••• •••• 1234';
 }
 function viewCert(cert,file,units){
   document.getElementById('certModalBody').innerHTML=`<button class="modal-close" onclick="closeModal('certModal')">✕</button><h3>E-Certificate</h3><div class="field-row"><div class="fl">Certificate No.</div><div class="fv">${cert}</div></div><div class="field-row"><div class="fl">File No.</div><div class="fv">${file}</div></div><div class="field-row"><div class="fl">Units</div><div class="fv">${units} Units</div></div><div class="field-row"><div class="fl">Holder</div><div class="fv">Tan Wei Ming</div></div><button class="small-btn primary" style="margin-top:10px" onclick="toast('Certificate download simulated')">Download</button>`;
