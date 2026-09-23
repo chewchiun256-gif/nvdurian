@@ -96,6 +96,8 @@ td{padding:10px;border-bottom:1px solid var(--border)}
 .link-btn{background:none;border:none;color:var(--green);font-weight:700;font-size:13px}
 .small-btn{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--text)}
 .small-btn.primary{background:var(--green);color:#fff;border:none}
+.edit-icon-btn{background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:14px;flex-shrink:0}
+.edit-icon-btn:hover{background:var(--gold-light)}
 .cert-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:var(--text-mute)}
 .cert-row b{color:var(--text)}
 .table-actions{display:flex;gap:8px}
@@ -271,9 +273,9 @@ textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8p
           <h3>Personal Information</h3>
           <div class="field-row"><div><div class="fl">Full Name <span class="tag-readonly">Read-only</span></div><div class="fv">Tan Wei Ming</div></div></div>
           <div class="field-row"><div><div class="fl">IC / Passport No. <span class="tag-readonly">Read-only</span></div><div class="fv">900101-10-1234</div></div></div>
-          <div class="field-row"><div><div class="fl">Phone Number</div><div class="fv" id="v-phone">012-345 6789</div></div><button class="small-btn" onclick="editField('v-phone')">Edit</button></div>
-          <div class="field-row"><div><div class="fl">Email Address</div><div class="fv" id="v-email">tan@example.com</div></div><button class="small-btn" onclick="editField('v-email')">Edit</button></div>
-          <div class="field-row"><div><div class="fl">Mailing Address</div><div class="fv" id="v-addr">12, Jalan Bahagia, 50460 Kuala Lumpur</div></div><button class="small-btn" onclick="editField('v-addr')">Edit</button></div>
+          <div class="field-row"><div><div class="fl">Phone Number</div><div class="fv" id="v-phone">012-345 6789</div></div><button class="edit-icon-btn" onclick="editField('v-phone')" aria-label="Edit phone number" title="Edit">✎</button></div>
+          <div class="field-row"><div><div class="fl">Email Address</div><div class="fv" id="v-email">tan@example.com</div></div><button class="edit-icon-btn" onclick="editField('v-email')" aria-label="Edit email address" title="Edit">✎</button></div>
+          <div class="field-row"><div><div class="fl">Mailing Address</div><div class="fv" id="v-addr">12, Jalan Bahagia, 50460 Kuala Lumpur</div></div><button class="edit-icon-btn" onclick="editField('v-addr')" aria-label="Edit mailing address" title="Edit">✎</button></div>
         </div>
         <div class="panel">
           <h3>Bank Account</h3>
@@ -307,7 +309,7 @@ textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8p
             </select>
           </div>
           <div class="table-wrap"><table id="payoutTable">
-            <thead><tr><th>Year</th><th>Units</th><th>Total Payout</th><th>Status</th><th>Payment Date</th><th></th></tr></thead>
+            <thead><tr><th>Year</th><th>Units</th><th>Payout per Unit</th><th>Total Payout</th><th>Status</th><th>Payment Date</th><th></th></tr></thead>
             <tbody></tbody>
           </table></div>
         </div>
@@ -485,7 +487,7 @@ function renderPayouts(){
   document.getElementById('progLabel3').textContent=programme==='GHR'?'GHR':'DR PLUS';
   let s=payoutSeries(programme);
   s.sort((a,b)=>payoutSort==='desc'?b.year-a.year:a.year-b.year);
-  document.getElementById('payoutTable').querySelector('tbody').innerHTML=s.map(x=>`<tr><td>${x.year}</td><td>${x.units} Units</td><td>RM ${x.total.toLocaleString(undefined,{minimumFractionDigits:2})}</td><td><span class="badge badge-ok">Paid</span></td><td>${x.date}</td><td><button class="link-btn" onclick="viewPayoutDetail(${x.year})">View Details</button></td></tr>`).join('');
+  document.getElementById('payoutTable').querySelector('tbody').innerHTML=s.map(x=>`<tr><td>${x.year}</td><td>${x.units} Units</td><td>RM ${x.perUnit.toLocaleString(undefined,{minimumFractionDigits:2})}</td><td>RM ${x.total.toLocaleString(undefined,{minimumFractionDigits:2})}</td><td><span class="badge badge-ok">Paid</span></td><td>${x.date}</td><td><button class="link-btn" onclick="viewPayoutDetail(${x.year})">View Details</button></td></tr>`).join('');
 }
 function sortPayouts(v){payoutSort=v;renderPayouts();}
 function viewPayoutDetail(year){
