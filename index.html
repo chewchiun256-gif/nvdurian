@@ -1,565 +1,1742 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GHR & DR PLUS Customer Portal</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<style>
-:root{
-  --green:#0e5b3a; --green-dark:#0a4229; --gold:#b8923f; --gold-light:#e9d9ae;
-  --bg:#f4f6f5; --surface:#ffffff; --border:#e1e5e3; --text:#1b241f; --text-mute:#5c6b62;
-  --danger:#b3413a; --ok:#1c7a4c; --warn:#a5720f;
-  --radius:12px;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-:root[data-theme="dark"]{
-  --bg:#10201a; --surface:#16281f; --border:#25392f; --text:#eaf2ec; --text-mute:#93a89b;
-  --green:#3fae7c; --green-dark:#2e8a63; --gold:#d8b463; --gold-light:#4a3f22;
-}
-/* Programme accent themes — GHR (green) vs DR PLUS (purple) so the active
-   programme is visually obvious throughout the portal */
-:root[data-programme="DRP"]{
-  --bg:#f2f9fc; --green:#0284c7; --green-dark:#0369a1; --gold-light:#e0f2fe;
-}
-:root[data-theme="dark"][data-programme="DRP"]{
-  --bg:#0d1f28; --surface:#132938; --border:#1e3a4d; --green:#38bdf8; --green-dark:#0ea5e9; --gold-light:#123244;
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
-button{font-family:inherit;cursor:pointer}
-input,select{font-family:inherit}
-.hidden{display:none !important}
-.demo-tag{position:fixed;bottom:10px;right:10px;background:var(--gold);color:#2a2000;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;z-index:999;letter-spacing:.3px}
-/* ---------- Auth screens ---------- */
-#authScreen{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
-.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
-.logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:22px}
-.logo-mark{width:38px;height:38px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px}
-.logo-text{font-weight:700;font-size:17px;color:var(--green)}
-.auth-card h1{font-size:21px;margin:0 0 4px}
-.auth-card p.sub{color:var(--text-mute);margin:0 0 22px;font-size:14px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
-.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;width:100%}
-.btn-primary{background:var(--green);color:#fff}
-.btn-primary:hover{background:var(--green-dark)}
-.btn-ghost{background:transparent;color:var(--green);border:1px solid var(--border)}
-.link-row{text-align:center;margin-top:14px;font-size:13px;color:var(--text-mute)}
-.link-row a{color:var(--green);text-decoration:none;font-weight:600;cursor:pointer}
-.hint-box{background:var(--gold-light);border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:16px;color:var(--text)}
-.security-note{font-size:11px;color:var(--text-mute);margin-top:18px;text-align:center}
-/* ---------- App shell ---------- */
-#app{display:none;min-height:100%}
-#app.active{display:flex}
-.sidebar{width:236px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:18px 12px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.sidebar .logo{justify-content:flex-start;padding:0 6px;margin-bottom:20px}
-.programme-switch{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:18px}
-.programme-switch button{flex:1;background:transparent;border:none;padding:8px 4px;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--text-mute)}
-.programme-switch button.active{background:var(--green);color:#fff}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--text-mute);border:none;background:transparent;width:100%;text-align:left;margin-bottom:2px}
-.nav-item .ic{width:18px;text-align:center}
-.nav-item:hover{background:var(--bg)}
-.nav-item.active{background:var(--gold-light);color:var(--green);font-weight:700}
-.nav-sep{height:1px;background:var(--border);margin:10px 4px}
-.main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10}
-.hamburger{display:none;background:none;border:none;font-size:20px;color:var(--text)}
-.topbar-right{display:flex;align-items:center;gap:14px}
-.icon-btn{background:var(--bg);border:1px solid var(--border);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;font-size:15px}
-.dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%}
-.avatar{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
-.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.content{padding:22px;flex:1;overflow-y:auto}
-.page{display:none}
-.page.active{display:block}
-h2.page-title{margin:0 0 4px;font-size:20px}
-.page-sub{color:var(--text-mute);font-size:13px;margin:0 0 20px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.stat-label{font-size:12px;color:var(--text-mute);margin-bottom:6px;font-weight:600}
-.stat-value{font-size:24px;font-weight:700}
-.stat-sub{font-size:12px;color:var(--ok);margin-top:4px}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px}
-.panel h3{margin:0 0 14px;font-size:15px}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;color:var(--text-mute);font-weight:600;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border)}
-td{padding:10px;border-bottom:1px solid var(--border)}
-.table-wrap{overflow-x:auto}
-.badge{padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
-.badge-ok{background:#e2f4ea;color:var(--ok)}
-.badge-warn{background:#fbf0dc;color:var(--warn)}
-:root[data-theme="dark"] .badge-ok{background:#12351f}
-:root[data-theme="dark"] .badge-warn{background:#3a2c0f}
-.link-btn{background:none;border:none;color:var(--green);font-weight:700;font-size:13px}
-.small-btn{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--text)}
-.small-btn.primary{background:var(--green);color:#fff;border:none}
-.edit-icon-btn{background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:14px;flex-shrink:0}
-.edit-icon-btn:hover{background:var(--gold-light)}
-.cert-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:var(--text-mute)}
-.cert-row b{color:var(--text)}
-.table-actions{display:flex;gap:8px}
-.field-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
-.field-row:last-child{border-bottom:none}
-.field-row .fl{font-size:12px;color:var(--text-mute);margin-bottom:2px}
-.field-row .fv{font-size:14px;font-weight:600}
-.tag-readonly{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:10px;color:var(--text-mute);margin-left:6px}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
-.modal-bg.active{display:flex}
-.modal{background:var(--surface);border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:24px}
-.modal-close{float:right;background:none;border:none;font-size:18px;color:var(--text-mute)}
-.toggle{position:relative;width:42px;height:24px;background:var(--border);border-radius:20px;border:none;flex-shrink:0}
-.toggle.on{background:var(--green)}
-.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.15s}
-.toggle.on::after{left:21px}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 22px;border-radius:8px;font-size:13.5px;font-weight:600;z-index:200;display:none}
-.notif-panel{position:absolute;top:52px;right:20px;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);display:none;z-index:60;padding:10px}
-.notif-panel.active{display:block}
-.notif-item{padding:10px;border-radius:8px;font-size:12.5px}
-.notif-item:hover{background:var(--bg)}
-.notif-item b{display:block;font-size:13px;margin-bottom:2px}
-.news-card{border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--surface)}
-.news-date{font-size:11.5px;color:var(--text-mute);margin-bottom:4px}
-.enq-cat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.enq-cat label{border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12.5px;display:flex;align-items:center;gap:6px}
-select.field-input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)}
-textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;min-height:90px}
-@media(max-width:900px){
-  .grid{grid-template-columns:repeat(2,1fr)}
-  .cert-grid{grid-template-columns:1fr}
-  .sidebar{position:fixed;left:-260px;top:0;height:100vh;z-index:80;transition:.2s;box-shadow:0 0 20px rgba(0,0,0,.2)}
-  .sidebar.open{left:0}
-  .hamburger{display:block}
-  .content{padding:14px}
-  .enq-cat{grid-template-columns:1fr}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHR & DR PLUS Customer Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ghr: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        },
+                        drplus: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
 
-<!-- ===== AUTH ===== -->
-<div id="authScreen">
-  <div class="auth-card" id="authCard">
-    <!-- LOGIN -->
-    <div id="view-login">
-      <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-      <h1>Welcome Back</h1>
-      <p class="sub">Access your GHR & DR PLUS account</p>
-      <div class="hint-box">Demo login — IC: <b>900101-10-1234</b> · Password: <b>Password123</b></div>
-      <div class="field"><label>IC / Passport / Company Reg. No.</label><input id="loginId" value="900101-10-1234"></div>
-      <div class="field"><label>Password</label><input id="loginPw" type="password" value="Password123"></div>
-      <button class="btn btn-primary" onclick="doLogin()">Log In</button>
-      <div class="link-row"><a onclick="show('view-forgot')">Forgot Password?</a></div>
-      <div class="link-row">Don't have an account? <a onclick="show('view-reg1')">Activate Your Account</a></div>
-      <p class="security-note">🔒 Your information is encrypted and protected. This is a demo prototype — no real data is transmitted.</p>
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- ================= PUBLIC LANDING PAGE ================= -->
+        <div id="public-view" class="flex flex-col min-h-screen">
+            
+            <!-- Sticky Header -->
+            <header id="sticky-header" class="sticky top-0 z-50 glass-panel border-b border-slate-200/80 transition-all duration-300">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                    <!-- Brand Logo -->
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="scrollToTop()">
+                        <div id="brand-logo-icon" class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20 transition-all duration-500">
+                            <i data-lucide="sprout" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold tracking-tight text-slate-900">Nirvana Portal</span>
+                            <span class="block text-xs font-medium text-emerald-600" id="brand-subtitle">GHR & DR PLUS</span>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Nav -->
+                    <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+                        <a href="#hero" class="hover:text-emerald-600 transition-colors">Home</a>
+                        <a href="#about" class="hover:text-emerald-600 transition-colors">About</a>
+                        <a href="#programmes" class="hover:text-emerald-600 transition-colors">Programmes</a>
+                        <a href="#benefits" class="hover:text-emerald-600 transition-colors">Benefits</a>
+                        <a href="#news" class="hover:text-emerald-600 transition-colors">News</a>
+                        <a href="#faq" class="hover:text-emerald-600 transition-colors">FAQ</a>
+                        <a href="#contact" class="hover:text-emerald-600 transition-colors">Contact</a>
+                    </nav>
+
+                    <!-- Header Actions -->
+                    <div class="hidden sm:flex items-center gap-3">
+                        <button onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                            Login
+                        </button>
+                        <button onclick="openRegisterModal()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-lg shadow-emerald-600/20 transition-all">
+                            Register Portal
+                        </button>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100" onclick="toggleMobileMenu()">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Dropdown -->
+                <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
+                    <a href="#hero" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">Home</a>
+                    <a href="#about" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">About</a>
+                    <a href="#programmes" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">Programmes</a>
+                    <a href="#benefits" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">Benefits</a>
+                    <a href="#news" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">News</a>
+                    <a href="#faq" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">FAQ</a>
+                    <a href="#contact" onclick="toggleMobileMenu()" class="block py-2 text-slate-700 font-medium">Contact</a>
+                    <div class="pt-4 flex flex-col gap-2">
+                        <button onclick="openLoginModal(); toggleMobileMenu();" class="w-full py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-700 text-center">Login</button>
+                        <button onclick="openRegisterModal(); toggleMobileMenu();" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-center shadow-md">Register Portal</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <section id="hero" class="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-32 bg-gradient-to-b from-slate-50 via-emerald-50/20 to-slate-100">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100/80 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                                Official Secure Customer Portal
+                            </div>
+                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                                Your GHR & DR PLUS Rewards, <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-700">All in One Place</span>
+                            </h1>
+                            <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
+                                Access your programme entitlement, digital certificates, payout history and annual statements securely from one convenient portal.
+                            </p>
+                            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                                <button onclick="enterPortalDemo()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5">
+                                    <span>Access My Portal</span>
+                                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                                </button>
+                                <a href="#programmes" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold flex items-center justify-center gap-3 transition-all">
+                                    <span>Explore Programmes</span>
+                                </a>
+                            </div>
+                            <!-- Trust indicators -->
+                            <div class="pt-6 border-t border-slate-200/80 grid grid-cols-3 gap-6 text-center lg:text-left">
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900">100%</div>
+                                    <div class="text-xs sm:text-sm text-slate-500 font-medium">Secure Verification</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900">RM 45M+</div>
+                                    <div class="text-xs sm:text-sm text-slate-500 font-medium">Payouts Distributed</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900">12,500+</div>
+                                    <div class="text-xs sm:text-sm text-slate-500 font-medium">Active Participants</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hero Visual Card with Floating Elements -->
+                        <div class="lg:col-span-5 relative">
+                            <div class="relative mx-auto max-w-md lg:max-w-none">
+                                <!-- Main Card Background image wrapper -->
+                                <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900 aspect-[4/5] relative group">
+                                    <img src="https://images.unsplash.com/photo-1596541233139-3a3390a36993?auto=format&fit=crop&q=80&w=800" alt="Sustainable Agriculture and Durian Orchard" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                                    <div class="absolute bottom-8 left-8 right-8 text-white">
+                                        <span class="inline-block px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-semibold mb-3">Live Enterprise System</span>
+                                        <h3 class="text-2xl font-bold">Golden Harvest & Durian Reward Plus</h3>
+                                        <p class="text-slate-300 text-sm mt-1">Empowering sustainable agricultural yields with transparent digital management.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Floating Card 1: Units -->
+                                <div class="absolute -top-6 -left-6 sm:-left-10 glass-panel p-4 rounded-2xl shadow-xl border border-white/80 animate-float flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-md">
+                                        <i data-lucide="layers" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Units Held</div>
+                                        <div class="text-lg font-extrabold text-slate-900">128 Units</div>
+                                    </div>
+                                </div>
+
+                                <!-- Floating Card 2: Latest Payout -->
+                                <div class="absolute -bottom-6 -right-6 sm:-right-10 glass-panel p-4 rounded-2xl shadow-xl border border-white/80 animate-float" style="animation-delay: 2s;">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-md">
+                                            <i data-lucide="trending-up" class="w-6 h-6"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Latest Payout</div>
+                                            <div class="text-lg font-extrabold text-slate-900">RM 2,400.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about" class="py-24 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center max-w-3xl mx-auto mb-16">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">About The Programmes</h2>
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Transparent Management for Modern Agribusiness</h3>
+                        <p class="text-slate-600 mt-4 text-lg">We bridge traditional agricultural excellence with state-of-the-art digital tracking, ensuring absolute clarity, security, and consistent returns for all participants.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:shadow-xl transition-all">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-6">
+                                <i data-lucide="eye" class="w-7 h-7"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Absolute Transparency</h4>
+                            <p class="text-slate-600">Every unit and file is fully tracked and verified in your personal portal dashboard with downloadable certificates.</p>
+                        </div>
+                        <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:shadow-xl transition-all">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-6">
+                                <i data-lucide="shield-check" class="w-7 h-7"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Certified Security</h4>
+                            <p class="text-slate-600">Bank-grade data encryption and secure verification ensure your entitlement data remains private and protected.</p>
+                        </div>
+                        <div class="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 hover:shadow-xl transition-all">
+                            <div class="w-14 h-14 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mb-6">
+                                <i data-lucide="coins" class="w-7 h-7"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Consistent Payouts</h4>
+                            <p class="text-slate-600">Automated quarterly and annual payout tracking with instant notification and direct banking integration.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Programme Introduction Cards (GHR vs DR PLUS) -->
+            <section id="programmes" class="py-24 bg-slate-100/70 border-y border-slate-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center max-w-3xl mx-auto mb-16">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">Our Core Programmes</h2>
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Choose Your Managed Asset Portfolio</h3>
+                        <p class="text-slate-600 mt-4 text-lg">Explore our flagship agricultural reward initiatives designed for long-term growth and stability.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- GHR Card -->
+                        <div class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
+                            <div>
+                                <div class="flex items-center justify-between mb-6">
+                                    <span class="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase tracking-wider">Golden Harvest Reward</span>
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="sprout" class="w-6 h-6"></i>
+                                    </div>
+                                </div>
+                                <h4 class="text-2xl font-bold text-slate-900 mb-3">GHR Programme</h4>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    Focused on sustainable broad-acre agricultural harvests, delivering consistent yields and robust multi-year asset security.
+                                </p>
+                                <div class="space-y-3 mb-8">
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                                        <span>Natural Agricultural Growth</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                                        <span>Quarterly Yield Statements</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                                        <span>Verified Digital Ownership Certificates</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="openProgrammeModal('ghr')" class="w-full py-4 rounded-2xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold flex items-center justify-center gap-3 transition-all group-hover:shadow-lg group-hover:shadow-emerald-600/20">
+                                <span>Explore GHR Details</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <!-- DR PLUS Card -->
+                        <div class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
+                            <div>
+                                <div class="flex items-center justify-between mb-6">
+                                    <span class="px-4 py-1.5 rounded-full bg-blue-100 text-blue-800 text-xs font-extrabold uppercase tracking-wider">Durian Reward Plus</span>
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i data-lucide="award" class="w-6 h-6"></i>
+                                    </div>
+                                </div>
+                                <h4 class="text-2xl font-bold text-slate-900 mb-3">DR PLUS Programme</h4>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    Specialized high-value premium durian cultivation program with accelerated return profiles and robust international market demand.
+                                </p>
+                                <div class="space-y-3 mb-8">
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-600"></i>
+                                        <span>Premium Durian Cultivation</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-600"></i>
+                                        <span>High-Growth Market Exposure</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-sm text-slate-700">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-600"></i>
+                                        <span>Dedicated Concierge Support</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="openProgrammeModal('drplus')" class="w-full py-4 rounded-2xl bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 font-bold flex items-center justify-center gap-3 transition-all group-hover:shadow-lg group-hover:shadow-blue-600/20">
+                                <span>Explore DR PLUS Details</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trust / Benefits Section -->
+            <section id="benefits" class="py-24 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center max-w-3xl mx-auto mb-16">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">Portal Features</h2>
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Everything You Need, In One Place</h3>
+                        <p class="text-slate-600 mt-4 text-lg">Designed for maximum clarity, speed, and effortless control over your reward entitlements.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-500 transition-all group">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                <i data-lucide="folder-kanban" class="w-6 h-6"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-900 mb-2">View Your Entitlement</h4>
+                            <p class="text-sm text-slate-600">See your files, units and authenticated digital certificates in real-time.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-blue-500 transition-all group">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-900 mb-2">Track Your Payout</h4>
+                            <p class="text-sm text-slate-600">View historical payout information and disbursement statuses instantly.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-teal-500 transition-all group">
+                            <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-all">
+                                <i data-lucide="file-text" class="w-6 h-6"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-900 mb-2">Download Statements</h4>
+                            <p class="text-sm text-slate-600">Access official annual E-Statements and tax documentation securely.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-indigo-500 transition-all group">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <i data-lucide="user-cog" class="w-6 h-6"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-900 mb-2">Manage Information</h4>
+                            <p class="text-sm text-slate-600">Maintain permitted personal information and designated bank accounts safely.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- News & Announcements -->
+            <section id="news" class="py-24 bg-slate-50 border-t border-slate-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16">
+                        <div>
+                            <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">Latest Updates</h2>
+                            <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900">News & Announcements</h3>
+                        </div>
+                        <button onclick="showToast('Loading full archive...')" class="mt-4 md:mt-0 font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-2">
+                            <span>View All Articles</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl transition-all flex flex-col">
+                            <div class="h-48 overflow-hidden relative">
+                                <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80&w=600" alt="Harvest" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold">GHR Update</span>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-2">October 14, 2026</div>
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2">Q3 Harvest Yield Exceeds Projections by 14.2%</h4>
+                                    <p class="text-sm text-slate-600">Participants in the GHR programme will see enhanced quarterly distributions reflecting record agricultural output.</p>
+                                </div>
+                                <button onclick="openNewsModal('q3')" class="mt-6 font-semibold text-sm text-emerald-600 hover:text-emerald-700 flex items-center gap-2">
+                                    <span>Read Full Article</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl transition-all flex flex-col">
+                            <div class="h-48 overflow-hidden relative">
+                                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600" alt="Durian" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">DR PLUS</span>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-2">September 28, 2026</div>
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2">Expansion of Musang King Cultivation Sectors</h4>
+                                    <p class="text-sm text-slate-600">New premium land plots successfully integrated into the DR PLUS portfolio following rigorous agricultural audit.</p>
+                                </div>
+                                <button onclick="openNewsModal('durian')" class="mt-6 font-semibold text-sm text-blue-600 hover:text-blue-700 flex items-center gap-2">
+                                    <span>Read Full Article</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl transition-all flex flex-col">
+                            <div class="h-48 overflow-hidden relative">
+                                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=600" alt="Portal" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-4 left-4 px-3 py-1 rounded-lg bg-teal-600 text-white text-xs font-bold">Security</span>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-2">September 10, 2026</div>
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2">Enhanced Two-Factor Authentication Released</h4>
+                                    <p class="text-sm text-slate-600">Portal security upgraded with seamless biometric and OTP verification options for all customer accounts.</p>
+                                </div>
+                                <button onclick="openNewsModal('security')" class="mt-6 font-semibold text-sm text-teal-600 hover:text-teal-700 flex items-center gap-2">
+                                    <span>Read Full Article</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section id="faq" class="py-24 bg-white">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">Got Questions?</h2>
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Frequently Asked Questions</h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                            <button onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-slate-900 flex items-center justify-between hover:bg-slate-50">
+                                <span>How do I access my GHR and DR PLUS digital certificates?</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+                            </button>
+                            <div class="hidden px-6 pb-6 text-slate-600 text-sm leading-relaxed">
+                                Once logged into your customer portal, navigate to the "Portfolio & Entitlements" tab on the left sidebar. Here you can view all active units, serial numbers, and open the interactive digital certificate viewer to download verified PDF copies.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                            <button onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-slate-900 flex items-center justify-between hover:bg-slate-50">
+                                <span>When are payout disbursements credited to my bank account?</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+                            </button>
+                            <div class="hidden px-6 pb-6 text-slate-600 text-sm leading-relaxed">
+                                Payouts are calculated at the end of each harvest quarter and disbursed within 5 to 7 working days directly to your verified bank account listed in your portal profile. You can track exact transfer statuses under the "Payout History" section.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                            <button onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-slate-900 flex items-center justify-between hover:bg-slate-50">
+                                <span>Can I switch between GHR and DR PLUS views in the portal?</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+                            </button>
+                            <div class="hidden px-6 pb-6 text-slate-600 text-sm leading-relaxed">
+                                Yes! Once authenticated, use the prominent Programme Switcher in the top header to instantly toggle between GHR (Golden Harvest Reward) and DR PLUS (Durian Reward Plus). The entire dashboard updates dynamically with tailored metrics and colour themes.
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                            <button onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-slate-900 flex items-center justify-between hover:bg-slate-50">
+                                <span>How do I update my registered bank account or contact details?</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+                            </button>
+                            <div class="hidden px-6 pb-6 text-slate-600 text-sm leading-relaxed">
+                                Go to the "Profile & Bank Details" tab in your authenticated portal. For security reasons, updating sensitive banking information requires a secure SMS OTP verification before changes are applied.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section id="contact" class="py-24 bg-slate-900 text-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <div class="space-y-6">
+                            <span class="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">Get in Touch</span>
+                            <h3 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Dedicated Customer Support</h3>
+                            <p class="text-slate-400 leading-relaxed">
+                                Our support concierge team is available Monday through Friday, 9:00 AM to 6:00 PM (GMT+8). Reach out via our portal secure messaging or contact us directly.
+                            </p>
+                            <div class="space-y-4 pt-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center font-bold">
+                                        <i data-lucide="phone" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium">Helpline</div>
+                                        <div class="text-base font-bold">+60 3-8888 9999</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center font-bold">
+                                        <i data-lucide="mail" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium">Email Support</div>
+                                        <div class="text-base font-bold">support@nirvana-rewards.com</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center font-bold">
+                                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium">Headquarters</div>
+                                        <div class="text-base font-bold">Nirvana Tower, Kuala Lumpur, Malaysia</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800 p-8 rounded-3xl border border-slate-700">
+                            <h4 class="text-xl font-bold mb-6">Send Us a Quick Inquiry</h4>
+                            <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2">Your Name</label>
+                                    <input type="text" required placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2">Email Address</label>
+                                    <input type="email" required placeholder="john@example.com" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-2">Message</label>
+                                    <textarea rows="4" required placeholder="How can we assist you today?" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-lg shadow-emerald-600/20">
+                                    Send Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="bg-slate-950 text-slate-500 py-12 border-t border-slate-900">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                            <i data-lucide="sprout" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-sm font-bold text-slate-300">GHR & DR PLUS Customer Portal</span>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center">© 2026 Nirvana Portal Management. Prototype Mockup for Stakeholder Review Only.</p>
+                    <div class="flex items-center gap-6 text-xs font-medium">
+                        <a href="#" class="hover:text-slate-300">Privacy Policy</a>
+                        <a href="#" class="hover:text-slate-300">Terms of Service</a>
+                        <a href="#" class="hover:text-slate-300">Security</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+
+
+        <!-- ================= AUTHENTICATED CUSTOMER PORTAL ================= -->
+        <div id="portal-view" class="hidden flex-1 flex flex-col bg-slate-100">
+            
+            <!-- Portal Header -->
+            <header id="portal-header" class="bg-white border-b border-slate-200 sticky top-0 z-40 transition-colors duration-500">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                    
+                    <!-- Left: Brand + Programme Switcher -->
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <div id="portal-brand-icon" class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md transition-colors duration-500">
+                                <i id="portal-logo-i" data-lucide="sprout" class="w-6 h-6"></i>
+                            </div>
+                            <div class="hidden sm:block">
+                                <span class="text-lg font-extrabold text-slate-900">Nirvana Portal</span>
+                                <span id="portal-badge-text" class="block text-xs font-bold text-emerald-600 transition-colors duration-500">GHR PROGRAMME</span>
+                            </div>
+                        </div>
+
+                        <!-- PROMINENT PROGRAMME SWITCHER -->
+                        <div class="bg-slate-100 p-1 rounded-2xl flex items-center border border-slate-200">
+                            <button id="btn-switch-ghr" onclick="switchProgramme('ghr')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-md flex items-center gap-2">
+                                <i data-lucide="sprout" class="w-4 h-4"></i>
+                                <span>GHR</span>
+                            </button>
+                            <button id="btn-switch-drplus" onclick="switchProgramme('drplus')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2">
+                                <i data-lucide="award" class="w-4 h-4"></i>
+                                <span>DR PLUS</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Notifications, User Profile & Logout -->
+                    <div class="flex items-center gap-4">
+                        <!-- Notification Bell Button -->
+                        <button onclick="openNotificationModal()" class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                        </button>
+
+                        <!-- User Profile Pill -->
+                        <div class="flex items-center gap-3 pl-3 border-l border-slate-200">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-10 h-10 rounded-xl object-cover border border-slate-200">
+                            <div class="hidden md:block text-left">
+                                <div class="text-sm font-bold text-slate-900">Dato' Sarah Lim</div>
+                                <div class="text-xs text-slate-500">ID: NIR-884920</div>
+                            </div>
+                        </div>
+
+                        <!-- Exit Portal Button -->
+                        <button onclick="exitPortal()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-700 transition-all" title="Logout">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Portal Body Layout -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col md:flex-row gap-8">
+                
+                <!-- Sidebar Navigation -->
+                <aside class="w-full md:w-64 flex-shrink-0 space-y-2">
+                    <div class="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm space-y-1">
+                        <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all bg-emerald-50 text-emerald-700">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                            <span>Dashboard</span>
+                        </button>
+                        <button onclick="switchTab('portfolio')" id="tab-btn-portfolio" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-50">
+                            <i data-lucide="folder-kanban" class="w-5 h-5"></i>
+                            <span>Portfolio & Units</span>
+                        </button>
+                        <button onclick="switchTab('payouts')" id="tab-btn-payouts" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-50">
+                            <i data-lucide="receipt" class="w-5 h-5"></i>
+                            <span>Payout History</span>
+                        </button>
+                        <button onclick="switchTab('profile')" id="tab-btn-profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-50">
+                            <i data-lucide="user-cog" class="w-5 h-5"></i>
+                            <span>Profile & Bank</span>
+                        </button>
+                        <button onclick="switchTab('support')" id="tab-btn-support" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-50">
+                            <i data-lucide="headphones" class="w-5 h-5"></i>
+                            <span>Support & Messages</span>
+                        </button>
+                    </div>
+
+                    <!-- Programme Info Mini Card -->
+                    <div id="sidebar-mini-card" class="bg-emerald-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-colors duration-500">
+                        <div class="absolute -right-4 -bottom-4 opacity-10">
+                            <i id="sidebar-bg-icon" data-lucide="sprout" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-xs uppercase tracking-wider text-emerald-300 font-bold mb-1" id="sidebar-prog-label">Active Programme</div>
+                        <div class="text-lg font-extrabold mb-3" id="sidebar-prog-name">Golden Harvest Reward</div>
+                        <p class="text-xs text-emerald-100/80 mb-4" id="sidebar-prog-desc">Broad-acre agricultural harvest portfolio with quarterly distributions.</p>
+                        <button onclick="openProgrammeModal(currentProgramme)" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold backdrop-blur-sm transition-all">
+                            View Terms
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Main Content Area -->
+                <main class="flex-1 space-y-8">
+                    
+                    <!-- TAB 1: DASHBOARD -->
+                    <div id="tab-content-dashboard" class="space-y-8">
+                        <!-- Welcome Banner -->
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <span id="dash-welcome-tag" class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">Verified Account</span>
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Welcome back, Dato' Sarah!</h2>
+                                <p class="text-slate-500 text-sm mt-1">Here is the latest financial performance summary for your active programme.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="openStatementModal()" class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 text-sm flex items-center gap-2 transition-all">
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                    <span>E-Statements</span>
+                                </button>
+                                <button onclick="switchTab('portfolio')" id="dash-action-btn" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white text-sm flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20">
+                                    <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+                                    <span>View Portfolio</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Metrics Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Card 1: Total Units -->
+                            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div id="metric-icon-1" class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors duration-500">
+                                        <i data-lucide="layers" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">+4.2% YoY</span>
+                                </div>
+                                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Units Held</div>
+                                <div id="val-total-units" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">128 Units</div>
+                            </div>
+
+                            <!-- Card 2: File Count -->
+                            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div id="metric-icon-2" class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center transition-colors duration-500">
+                                        <i data-lucide="file-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full">Active</span>
+                                </div>
+                                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Files / Certs</div>
+                                <div id="val-file-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">24 Files</div>
+                            </div>
+
+                            <!-- Card 3: Latest Payout -->
+                            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div id="metric-icon-3" class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center transition-colors duration-500">
+                                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Disbursed</span>
+                                </div>
+                                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Latest Payout</div>
+                                <div id="val-latest-payout" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">RM 2,400</div>
+                            </div>
+
+                            <!-- Card 4: Total Payout (Cumulative) -->
+                            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div id="metric-icon-4" class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center transition-colors duration-500">
+                                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Cumulative</span>
+                                </div>
+                                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Payout Received</div>
+                                <div id="val-total-payout" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">RM 28,800</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Section (Chart.js) -->
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900">Historical Payout Performance</h3>
+                                    <p class="text-xs text-slate-500">Quarterly disbursement trends over the last 6 cycles.</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-500 px-3 py-1 rounded-lg bg-slate-100">Annual Overview</span>
+                                </div>
+                            </div>
+                            <div class="h-80 w-full">
+                                <canvas id="payoutChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Recent Payouts Table Preview -->
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-bold text-slate-900">Recent Payout Records</h3>
+                                <button onclick="switchTab('payouts')" class="text-xs font-bold text-emerald-600 hover:text-emerald-700">View All History</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase">
+                                            <th class="pb-3 font-semibold">Reference ID</th>
+                                            <th class="pb-3 font-semibold">Cycle Period</th>
+                                            <th class="pb-3 font-semibold">Units</th>
+                                            <th class="pb-3 font-semibold">Amount</th>
+                                            <th class="pb-3 font-semibold">Status</th>
+                                            <th class="pb-3 font-semibold text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-payouts-tbody" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: PORTFOLIO & ENTITLEMENTS -->
+                    <div id="tab-content-portfolio" class="hidden space-y-8">
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">Asset Management</span>
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Portfolio & Entitlements</h2>
+                                <p class="text-slate-500 text-sm mt-1">Review your active files, serial numbers, and open digital certificates.</p>
+                            </div>
+                            <button onclick="showToast('Certificate verification export started...')" class="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 font-bold text-white text-sm flex items-center gap-2 transition-all">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                <span>Verify All Certificates</span>
+                            </button>
+                        </div>
+
+                        <!-- Files Grid -->
+                        <div id="portfolio-files-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: PAYOUT HISTORY & STATEMENTS -->
+                    <div id="tab-content-payouts" class="hidden space-y-8">
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <span class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold uppercase tracking-wider">Financial Records</span>
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Payout History & Statements</h2>
+                                <p class="text-slate-500 text-sm mt-1">Download historical statements and review complete disbursement logs.</p>
+                            </div>
+                            <button onclick="openStatementModal()" class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-white text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span>Download Annual E-Statement</span>
+                            </button>
+                        </div>
+
+                        <!-- Full Payout Table -->
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                            <h3 class="text-lg font-bold text-slate-900 mb-6">Complete Disbursement Archive</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase">
+                                            <th class="pb-3 font-semibold">Reference ID</th>
+                                            <th class="pb-3 font-semibold">Date</th>
+                                            <th class="pb-3 font-semibold">Cycle Period</th>
+                                            <th class="pb-3 font-semibold">Units</th>
+                                            <th class="pb-3 font-semibold">Amount</th>
+                                            <th class="pb-3 font-semibold">Status</th>
+                                            <th class="pb-3 font-semibold text-right">Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="full-payouts-tbody" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: PROFILE & BANK DETAILS -->
+                    <div id="tab-content-profile" class="hidden space-y-8">
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+                            <span class="px-3 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold uppercase tracking-wider">Account Security</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Profile & Bank Details</h2>
+                            <p class="text-slate-500 text-sm mt-1">Manage your registered personal particulars and designated bank disbursement account.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Personal Particulars -->
+                            <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="user" class="w-5 h-5 text-emerald-600"></i>
+                                    <span>Personal Particulars</span>
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Full Name (As per NRIC / Passport)</label>
+                                        <input type="text" value="Dato' Sarah Lim Pei Ling" readonly class="w-full mt-1.5 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">NRIC / Registration Number</label>
+                                        <input type="text" value="780412-14-5588" readonly class="w-full mt-1.5 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Registered Email</label>
+                                        <input type="email" value="sarah.lim@nirvana-exec.com" class="w-full mt-1.5 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Mobile Phone Number</label>
+                                        <input type="text" value="+60 12-345 6789" class="w-full mt-1.5 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                                    </div>
+                                </div>
+                                <button onclick="showToast('Personal particulars updated successfully.')" class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-all">
+                                    Save Changes
+                                </button>
+                            </div>
+
+                            <!-- Designated Bank Account -->
+                            <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="landmark" class="w-5 h-5 text-blue-600"></i>
+                                    <span>Designated Bank Account</span>
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Bank Name</label>
+                                        <select id="bank-name-select" class="w-full mt-1.5 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                                            <option selected>Malayan Banking Berhad (Maybank)</option>
+                                            <option>Public Bank Berhad</option>
+                                            <option>CIMB Bank Berhad</option>
+                                            <option>RHB Bank Berhad</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Account Holder Name</label>
+                                        <input type="text" value="Dato' Sarah Lim Pei Ling" class="w-full mt-1.5 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase">Account Number</label>
+                                        <input type="text" value="5142 9988 7766" class="w-full mt-1.5 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                                    </div>
+                                </div>
+                                <button onclick="openBankOtpModal()" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/20">
+                                    Update Bank Details (OTP Secure)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: SUPPORT & MESSAGES -->
+                    <div id="tab-content-support" class="hidden space-y-8">
+                        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div>
+                                <span class="px-3 py-1 rounded-lg bg-teal-100 text-teal-800 text-xs font-bold uppercase tracking-wider">Concierge Support</span>
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Support & Messages</h2>
+                                <p class="text-slate-500 text-sm mt-1">Direct communication channel with your assigned customer relationship manager.</p>
+                            </div>
+                            <button onclick="showToast('New ticket created successfully.')" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white text-sm flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>New Inquiry Ticket</span>
+                            </button>
+                        </div>
+
+                        <!-- Chat / Message Box Interface -->
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[500px]">
+                            <div class="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-900">Aiden Tan (Senior Relationship Manager)</h4>
+                                        <span class="text-xs text-emerald-600 font-medium flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            Online & Ready to Help
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-slate-400">Ticket #SUP-9921</span>
+                            </div>
+
+                            <!-- Messages Thread -->
+                            <div class="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50" id="chat-messages-container">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">AT</div>
+                                    <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 max-w-md shadow-sm">
+                                        <p class="text-xs font-bold text-slate-900 mb-1">Aiden Tan</p>
+                                        <p class="text-sm text-slate-700">Good day Dato' Sarah. Your Q3 payout disbursement has been successfully scheduled. Please let me know if you need any assistance regarding your certificates.</p>
+                                        <span class="text-[10px] text-slate-400 mt-1 block">Yesterday at 10:45 AM</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3 justify-end">
+                                    <div class="bg-emerald-600 text-white p-4 rounded-2xl rounded-tr-none max-w-md shadow-md">
+                                        <p class="text-xs font-bold text-emerald-100 mb-1">You</p>
+                                        <p class="text-sm">Thank you Aiden. Everything looks correct in my portal dashboard.</p>
+                                        <span class="text-[10px] text-emerald-200 mt-1 block text-right">Yesterday at 11:15 AM</span>
+                                    </div>
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-8 h-8 rounded-lg object-cover">
+                                </div>
+                            </div>
+
+                            <!-- Input Bar -->
+                            <div class="p-4 bg-white border-t border-slate-200 flex items-center gap-3">
+                                <input type="text" id="chat-input-field" placeholder="Type your message to Aiden..." class="flex-1 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-800 focus:outline-none focus:border-emerald-500" onkeypress="if(event.key==='Enter')sendPortalMessage()">
+                                <button onclick="sendPortalMessage()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all">
+                                    Send
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+
     </div>
-    <!-- REGISTER STEP 1 -->
-    <div id="view-reg1" class="hidden">
-      <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-      <h1>Activate Your Account</h1>
-      <p class="sub">Enter your identity to get started</p>
-      <div class="field"><label>IC / Passport / Company Reg. No.</label><input id="regId" placeholder="900101-10-1234"></div>
-      <button class="btn btn-primary" onclick="show('view-otp')">Continue</button>
-      <div class="link-row"><a onclick="show('view-login')">Back to Login</a></div>
-    </div>
-    <!-- OTP -->
-    <div id="view-otp" class="hidden">
-      <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-      <h1>Verify OTP</h1>
-      <p class="sub">OTP sent to ******1234</p>
-      <div class="field"><label>6-digit OTP</label><input id="otpVal" maxlength="6" placeholder="123456"></div>
-      <button class="btn btn-primary" onclick="show('view-setpw')">Verify OTP</button>
-      <button class="btn btn-ghost" style="margin-top:8px" onclick="toast('OTP resent')">Resend OTP</button>
-      <div class="link-row">Didn't receive it? <a onclick="show('page-contact-pre')">Contact Us</a></div>
-    </div>
-    <!-- SET PASSWORD -->
-    <div id="view-setpw" class="hidden">
-      <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-      <h1>Create Password</h1>
-      <p class="sub">Min. 8 characters, one uppercase letter, one number</p>
-      <div class="field"><label>New Password</label><input type="password" id="newpw1"></div>
-      <div class="field"><label>Confirm Password</label><input type="password" id="newpw2"></div>
-      <button class="btn btn-primary" onclick="show('view-regdone')">Set Password</button>
-    </div>
-    <!-- REG DONE -->
-    <div id="view-regdone" class="hidden" style="text-align:center">
-      <div style="font-size:40px;margin-bottom:10px">✅</div>
-      <h1>Registration Complete</h1>
-      <p class="sub">Redirecting you to the portal…</p>
-    </div>
-    <!-- FORGOT -->
-    <div id="view-forgot" class="hidden">
-      <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-      <h1>Forgot Password</h1>
-      <p class="sub">Enter your IC/Passport to reset via OTP</p>
-      <div class="field"><label>IC / Passport / Company Reg. No.</label><input placeholder="900101-10-1234"></div>
-      <button class="btn btn-primary" onclick="show('view-otp')">Send OTP</button>
-      <div class="link-row"><a onclick="show('view-login')">Back to Login</a></div>
-    </div>
-  </div>
-</div>
 
-<!-- ===== APP SHELL ===== -->
-<div id="app">
-  <div class="sidebar" id="sidebar">
-    <div class="logo"><div class="logo-mark">NA</div><div class="logo-text">NIRVANA</div></div>
-    <div class="programme-switch">
-      <button id="pg-GHR" class="active" onclick="setProgramme('GHR')">GHR</button>
-      <button id="pg-DRP" onclick="setProgramme('DRP')">DR PLUS</button>
-    </div>
-    <button class="nav-item active" data-page="dashboard" onclick="go('dashboard')"><span class="ic">🏠</span>Dashboard</button>
-    <button class="nav-item" data-page="profile" onclick="go('profile')"><span class="ic">👤</span>Customer Profile</button>
-    <button class="nav-item" data-page="entitlement" onclick="go('entitlement')"><span class="ic">📄</span>Holder's Entitlement</button>
-    <button class="nav-item" data-page="payouts" onclick="go('payouts')"><span class="ic">💰</span>Payout History</button>
-    <button class="nav-item" data-page="estatement" onclick="go('estatement')"><span class="ic">🧾</span>E-Statement</button>
-    <button class="nav-item" data-page="contact" onclick="go('contact')"><span class="ic">✉️</span>Contact Us</button>
-    <button class="nav-item" data-page="news" onclick="go('news')"><span class="ic">📰</span>News</button>
-    <button class="nav-item" data-page="settings" onclick="go('settings')"><span class="ic">⚙️</span>Settings</button>
-    <div class="nav-sep"></div>
-    <button class="nav-item" onclick="logout()"><span class="ic">🚪</span>Logout</button>
-  </div>
 
-  <div class="main">
-    <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px">
-        <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-        <div style="font-weight:700;font-size:15px" id="topTitle">Dashboard</div>
-      </div>
-      <div class="topbar-right">
-        <button class="icon-btn" onclick="toggleNotif()">🔔<span class="dot" id="notifDot"></span></button>
-        <div class="user-chip"><div class="avatar">TW</div><span id="userNameChip">Tan Wei Ming</span></div>
-      </div>
-      <div class="notif-panel" id="notifPanel">
-        <div style="display:flex;justify-content:space-between;padding:6px 8px"><b style="font-size:13px">Notifications</b><a class="link-btn" style="font-size:11.5px" onclick="markAllRead()">Mark all read</a></div>
-        <div class="notif-item"><b>2026 Payout Processed</b>Your payout of RM 1,704.00 has been processed.</div>
-        <div class="notif-item"><b>New E-Statement Available</b>Your 2026 annual statement is ready.</div>
-        <div class="notif-item"><b>Profile Update</b>Your bank account update is pending verification.</div>
-      </div>
+    <!-- ================= MODALS & TOAST ================= -->
+
+    <!-- Login Modal -->
+    <div id="modal-login" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeLoginModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-600/30">
+                    <i data-lucide="lock" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-900">Welcome to Portal</h3>
+                <p class="text-xs text-slate-500 mt-1">Secure Customer Sign In</p>
+            </div>
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Email or Client ID</label>
+                    <input type="text" id="login-email" value="sarah.lim@nirvana-exec.com" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+                    <input type="password" id="login-pass" value="password123" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-slate-600">Remember this device</span>
+                    </label>
+                    <a href="#" onclick="showToast('Password reset link sent to your email.')" class="font-bold text-emerald-600 hover:underline">Forgot password?</a>
+                </div>
+                <button type="submit" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all">
+                    Sign In Securely
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-500">
+                Don't have an account? <a href="#" onclick="closeLoginModal(); openRegisterModal();" class="font-bold text-emerald-600 hover:underline">Register here</a>
+            </div>
+        </div>
     </div>
 
-    <div class="content">
-      <!-- DASHBOARD -->
-      <div class="page active" id="page-dashboard">
-        <h2 class="page-title">Welcome back, Tan</h2>
-        <p class="page-sub">Here's your <span id="progLabel1">GHR</span> account overview</p>
-        <div class="grid">
-          <div class="card"><div class="stat-label">Total Units</div><div class="stat-value" id="stat-units">10 Units</div></div>
-          <div class="card"><div class="stat-label">Files Held</div><div class="stat-value" id="stat-files">5 Files</div></div>
-          <div class="card"><div class="stat-label">Total Payout Received</div><div class="stat-value" id="stat-total">RM 8,520.00</div></div>
-          <div class="card"><div class="stat-label" id="stat-latest-label">Latest Payout</div><div class="stat-value" id="stat-latest">RM 1,704.00</div><div class="stat-sub" id="stat-latest-sub">Paid on 15 Mar 2026</div></div>
+    <!-- Register Modal -->
+    <div id="modal-register" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
+            <button onclick="closeRegisterModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-600/30">
+                    <i data-lucide="user-plus" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-900">Portal Registration</h3>
+                <p class="text-xs text-slate-500 mt-1">Claim and link your GHR or DR PLUS units</p>
+            </div>
+            <form onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Full Name (As in NRIC)</label>
+                    <input type="text" required placeholder="Dato' Sarah Lim" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Email Address</label>
+                    <input type="email" required placeholder="sarah@example.com" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Initial Programme Interest</label>
+                    <select class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm focus:outline-none focus:border-emerald-500">
+                        <option>Golden Harvest Reward (GHR)</option>
+                        <option>Durian Reward Plus (DR PLUS)</option>
+                        <option>Both Programmes</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 transition-all">
+                    Submit Registration Request
+                </button>
+            </form>
         </div>
-        <div class="panel">
-          <h3>Payout History Overview</h3>
-          <p style="font-size:12px;color:var(--text-mute);margin:-6px 0 12px">Shows payouts actually paid to date. As an entitlement programme, future payout amounts are not projected or guaranteed.</p>
-          <canvas id="payoutChart" height="90"></canvas>
-          <div style="margin-top:12px"><button class="small-btn primary" onclick="go('payouts')">View Payout History</button></div>
-        </div>
-        <div class="panel">
-          <h3>Recent Activity</h3>
-          <div class="field-row"><div class="fv">2026 Payout Processed</div><div class="fl">15 Mar 2026</div></div>
-          <div class="field-row"><div class="fv">E-Statement Available</div><div class="fl">16 Mar 2026</div></div>
-          <div class="field-row"><div class="fv">Bank Account Update Submitted</div><div class="fl">02 Feb 2026</div></div>
-          <div class="field-row"><div class="fv">New Announcement</div><div class="fl">28 Jan 2026</div></div>
-        </div>
-      </div>
-
-      <!-- PROFILE -->
-      <div class="page" id="page-profile">
-        <h2 class="page-title">Customer Profile</h2>
-        <p class="page-sub">View and update your personal information</p>
-        <div class="panel">
-          <h3>Personal Information</h3>
-          <div class="field-row"><div><div class="fl">Full Name <span class="tag-readonly">Read-only</span></div><div class="fv">Tan Wei Ming</div></div></div>
-          <div class="field-row"><div><div class="fl">IC / Passport No. <span class="tag-readonly">Read-only</span></div><div class="fv">900101-10-1234</div></div></div>
-          <div class="field-row"><div><div class="fl">Phone Number</div><div class="fv" id="v-phone">012-345 6789</div></div><button class="edit-icon-btn" onclick="editField('v-phone')" aria-label="Edit phone number" title="Edit">✎</button></div>
-          <div class="field-row"><div><div class="fl">Email Address</div><div class="fv" id="v-email">tan@example.com</div></div><button class="edit-icon-btn" onclick="editField('v-email')" aria-label="Edit email address" title="Edit">✎</button></div>
-          <div class="field-row"><div><div class="fl">Mailing Address</div><div class="fv" id="v-addr">12, Jalan Bahagia, 50460 Kuala Lumpur</div></div><button class="edit-icon-btn" onclick="editField('v-addr')" aria-label="Edit mailing address" title="Edit">✎</button></div>
-        </div>
-        <div class="panel">
-          <h3>Bank Account</h3>
-          <div class="field-row"><div><div class="fl">Bank Name</div><div class="fv">Maybank</div></div></div>
-          <div class="field-row"><div><div class="fl">Account Number</div><div class="fv"><span id="bankNo">•••• •••• 1234</span> <button class="link-btn" onclick="toggleBank()">👁</button></div></div></div>
-          <div class="field-row"><div><div class="fl">Status</div><span class="badge badge-ok">Verified</span></div><button class="small-btn primary" onclick="openBankModal()">Update Bank Account</button></div>
-        </div>
-      </div>
-
-      <!-- ENTITLEMENT -->
-      <div class="page" id="page-entitlement">
-        <h2 class="page-title">Holder's Entitlement</h2>
-        <p class="page-sub"><span id="progLabel2">GHR</span> · <span id="ent-units">10 Units</span> across <span id="ent-files">5 Files</span></p>
-        <div class="panel">
-          <h3>Certificates & Files</h3>
-          <div class="table-wrap"><table id="entTable">
-            <thead><tr><th>File No.</th><th>Certificate No.</th><th>Bank</th><th>Bank Account No.</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <!-- PAYOUT HISTORY -->
-      <div class="page" id="page-payouts">
-        <h2 class="page-title">Payout History</h2>
-        <p class="page-sub">Statement of all payouts received under <span id="progLabel3">GHR</span></p>
-        <div class="panel">
-          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-            <select class="field-input" style="width:auto" onchange="sortPayouts(this.value)">
-              <option value="desc">Year: Newest First</option><option value="asc">Year: Oldest First</option>
-            </select>
-          </div>
-          <div class="table-wrap"><table id="payoutTable">
-            <thead><tr><th>Year</th><th>Units</th><th>Payout per Unit</th><th>Total Payout</th><th>Status</th><th>Payment Date</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <!-- E-STATEMENT -->
-      <div class="page" id="page-estatement">
-        <h2 class="page-title">Annual E-Statement</h2>
-        <p class="page-sub">Select a year to view your official statement</p>
-        <div class="panel">
-          <select class="field-input" style="width:200px;margin-bottom:16px" id="stmtYear" onchange="renderStatement()"></select>
-          <div id="stmtBody"></div>
-          <div style="margin-top:14px;display:flex;gap:8px">
-            <button class="small-btn" onclick="toast('Statement opened')">View Statement</button>
-            <button class="small-btn primary" onclick="toast('PDF download simulation')">Download PDF</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CONTACT -->
-      <div class="page" id="page-contact">
-        <h2 class="page-title">How can we help?</h2>
-        <div class="panel">
-          <div class="field"><label>Name</label><input value="Tan Wei Ming"></div>
-          <div class="field"><label>Email</label><input value="tan@example.com"></div>
-          <div class="field"><label>Phone Number</label><input value="012-345 6789"></div>
-          <div class="field"><label>Preferred Contact Channel</label>
-            <select class="field-input"><option>Email</option><option>Phone</option><option>WhatsApp</option></select>
-          </div>
-          <div class="field"><label>Enquiry Category</label>
-            <select class="field-input"><option>Payout</option><option>Bank Account</option><option>Certificate</option><option>Personal Information</option><option>Programme</option><option>Technical Issue</option><option>Other</option></select>
-          </div>
-          <div class="field"><label>Message</label><textarea placeholder="Tell us how we can help..."></textarea></div>
-          <button class="btn btn-primary" style="width:auto" onclick="submitEnquiry()">Submit Enquiry</button>
-        </div>
-        <div class="panel">
-          <h3>Contact Information</h3>
-          <div class="field-row"><div class="fl">Phone</div><div class="fv">03 - 2779 1836</div></div>
-          <div class="field-row"><div class="fl">Address</div><div class="fv">Nirvana 3, Jalan Dewan Bahasa, Bukit Seputeh, 50460 Kuala Lumpur</div></div>
-          <div class="field-row"><div class="fl">Operating Hours</div><div class="fv">Mon–Fri, 9:30 AM–6:15 PM</div></div>
-          <div style="margin-top:10px;display:flex;gap:8px"><button class="small-btn" onclick="toast('Opens Google Maps')">Google Maps</button><button class="small-btn" onclick="toast('Opens Waze')">Waze</button></div>
-        </div>
-      </div>
-
-      <!-- NEWS -->
-      <div class="page" id="page-news">
-        <h2 class="page-title">News & Announcements</h2>
-        <div class="news-card"><div class="news-date">15 March 2026</div><h3 style="margin:0 0 6px">2026 GHR Payout Announcement</h3><p style="margin:0;color:var(--text-mute);font-size:13.5px">Your annual GHR payout has been processed and credited to your registered bank account.</p><button class="link-btn" onclick="toast('Full article shown')">Read More</button></div>
-        <div class="news-card"><div class="news-date">02 Feb 2026</div><h3 style="margin:0 0 6px">Important Programme Update</h3><p style="margin:0;color:var(--text-mute);font-size:13.5px">Updates to the programme terms take effect from April 2026.</p><button class="link-btn" onclick="toast('Full article shown')">Read More</button></div>
-        <div class="news-card"><div class="news-date">16 Mar 2026</div><h3 style="margin:0 0 6px">E-Statement Available</h3><p style="margin:0;color:var(--text-mute);font-size:13.5px">Your 2026 annual e-statement is now ready to view.</p><button class="link-btn" onclick="toast('Full article shown')">Read More</button></div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div class="page" id="page-settings">
-        <h2 class="page-title">Settings</h2>
-        <div class="panel">
-          <h3>Notifications</h3>
-          <div class="field-row"><div><div class="fv">Payout Notification</div><div class="fl">Notify me when payout is processed</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="field-row"><div><div class="fv">News Notification</div><div class="fl">Notify me when there is a new announcement</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-        <div class="panel">
-          <h3>Privacy</h3>
-          <div class="field-row"><div class="fv">Terms & Conditions</div><button class="link-btn" onclick="toast('T&Cs shown')">View</button></div>
-          <div class="field-row"><div class="fv">Privacy Policy</div><button class="link-btn" onclick="toast('Policy shown')">View</button></div>
-        </div>
-        <div class="panel">
-          <h3>Change Password</h3>
-          <div class="field"><label>Current Password</label><input type="password"></div>
-          <div class="field"><label>New Password</label><input type="password"></div>
-          <div class="field"><label>Confirm Password</label><input type="password"></div>
-          <button class="small-btn primary" onclick="toast('Password updated')">Save Password</button>
-        </div>
-        <div class="panel">
-          <h3>Theme</h3>
-          <select class="field-input" style="width:200px" onchange="setTheme(this.value)">
-            <option value="light">Default</option><option value="dark">Dark Theme</option>
-          </select>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
 
-<!-- BANK MODAL -->
-<div class="modal-bg" id="bankModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('bankModal')">✕</button>
-    <h3>Update Bank Account</h3>
-    <p style="font-size:12.5px;color:var(--warn);background:var(--gold-light);padding:8px 10px;border-radius:8px">⚠ Bank account changes require OTP verification.</p>
-    <div class="field"><label>Bank Name</label><select class="field-input"><option>Maybank</option><option>CIMB Bank</option><option>Public Bank</option></select></div>
-    <div class="field"><label>New Bank Account Number</label><input placeholder="e.g. 1234567890"></div>
-    <div class="field"><label>Supporting Document</label><input type="file"></div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="small-btn" onclick="closeModal('bankModal')">Cancel</button>
-      <button class="small-btn primary" onclick="submitBank()">Submit for Verification</button>
+    <!-- Programme Details Modal -->
+    <div id="modal-programme" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative">
+            <button onclick="closeProgrammeModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div id="prog-modal-content" class="space-y-4">
+                <!-- Populated by JS -->
+            </div>
+            <div class="mt-8 pt-6 border-t border-slate-200 flex justify-end">
+                <button onclick="closeProgrammeModal()" class="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm">Close</button>
+            </div>
+        </div>
     </div>
-    <div id="bankStatus"></div>
-  </div>
-</div>
 
-<!-- PAYOUT DETAIL MODAL -->
-<div class="modal-bg" id="payoutModal">
-  <div class="modal" id="payoutModalBody"></div>
-</div>
+    <!-- Certificate Modal -->
+    <div id="modal-cert" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative">
+            <button onclick="closeCertModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center mb-6">
+                <span id="cert-prog-badge" class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">Official Certificate</span>
+                <h3 id="cert-title" class="text-2xl font-extrabold text-slate-900 mt-2">Digital Ownership Certificate</h3>
+                <p id="cert-serial" class="text-xs text-slate-500 font-mono mt-1">SN-GHR-2026-88910</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-emerald-50 border-2 border-dashed border-emerald-300 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg">
+                    <i data-lucide="award" class="w-8 h-8"></i>
+                </div>
+                <h4 class="text-xl font-bold text-slate-900">Certificate of Entitlement & Unit Allocation</h4>
+                <p class="text-sm text-slate-600 max-w-md mx-auto">This certifies that <strong class="text-slate-900">Dato' Sarah Lim</strong> holds verified unit allocations under management.</p>
+                <div class="flex items-center justify-center gap-6 pt-2 text-xs font-bold text-slate-700">
+                    <div>Status: <span class="text-emerald-600">Active & Verified</span></div>
+                    <div>Issued: <span class="text-slate-900">Jan 2024</span></div>
+                </div>
+            </div>
+            <div class="mt-8 flex items-center justify-between gap-4">
+                <button onclick="showToast('Certificate PDF downloaded successfully.')" class="flex-1 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Download PDF Certificate</span>
+                </button>
+                <button onclick="closeCertModal()" class="px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Close</button>
+            </div>
+        </div>
+    </div>
 
-<!-- CERT MODAL -->
-<div class="modal-bg" id="certModal">
-  <div class="modal" id="certModalBody"></div>
-</div>
+    <!-- Statement Download Modal -->
+    <div id="modal-statement" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
+            <button onclick="closeStatementModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-900">Download E-Statement</h3>
+                <p class="text-xs text-slate-500 mt-1">Select the reporting period for your official tax and holding statement.</p>
+            </div>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Financial Year / Period</label>
+                    <select class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm">
+                        <option>Annual E-Statement 2025 (Full Year)</option>
+                        <option>Annual E-Statement 2024 (Full Year)</option>
+                        <option>Q3 2026 Interim Statement</option>
+                        <option>Q2 2026 Interim Statement</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="showToast('Annual E-Statement PDF downloaded.'); closeStatementModal();" class="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-600/20">
+                Download Official PDF
+            </button>
+        </div>
+    </div>
 
-<div class="toast" id="toast"></div>
-<div class="demo-tag">DEMO / PROTOTYPE MODE</div>
+    <!-- Bank OTP Verification Modal -->
+    <div id="modal-otp" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative text-center">
+            <button onclick="closeBankOtpModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="shield-alert" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-slate-900">Security Verification</h3>
+            <p class="text-xs text-slate-500 mt-1 mb-6">We have sent a 6-digit SMS OTP to your registered mobile number <strong class="text-slate-800">+60 12-*** 6789</strong>.</p>
+            <div class="flex justify-center gap-3 mb-6">
+                <input type="text" maxlength="1" value="4" class="w-12 h-12 rounded-xl bg-slate-50 border-2 border-emerald-500 text-center text-xl font-extrabold">
+                <input type="text" maxlength="1" value="8" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-extrabold">
+                <input type="text" maxlength="1" value="9" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-extrabold">
+                <input type="text" maxlength="1" value="2" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-extrabold">
+                <input type="text" maxlength="1" value="1" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-extrabold">
+                <input type="text" maxlength="1" value="5" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 text-center text-xl font-extrabold">
+            </div>
+            <button onclick="showToast('Bank details updated successfully with OTP verification.'); closeBankOtpModal();" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20">
+                Verify & Save Bank Account
+            </button>
+        </div>
+    </div>
 
-<script>
-/* ---------- DATA ---------- */
-const DATA = {
-  GHR:{units:10,files:5,total:8520,latest:1704,perUnitBase:170.4,certPrefix:1,filePrefix:9000000001},
-  DRP:{units:6,files:3,total:5220,latest:1044,perUnitBase:174.0,certPrefix:1001,filePrefix:9200000001}
-};
-let programme='GHR';
-// Only actual, already-paid years are shown — this is an entitlement/reward
-// programme, not a market investment, so no projected or estimated future
-// values are displayed. Once a year's payout is actually paid, it appears here.
-const CURRENT_YEAR=2026;
-const PAID_YEARS_BACK=4; // years of real paid history in this demo
-function years(){const arr=[];for(let y=CURRENT_YEAR-PAID_YEARS_BACK+1;y<=CURRENT_YEAR;y++)arr.push(y);return arr}
-function payoutSeries(p){const d=DATA[p];return years().map((y,i)=>({year:y,units:d.units,perUnit:+(d.perUnitBase+i*3.1).toFixed(2),total:+((d.perUnitBase+i*3.1)*d.units).toFixed(2),status:'Paid',date:`15 Mar ${y}`}))}
-let chart;
-function renderChart(){
-  const s=payoutSeries(programme);
-  const ctx=document.getElementById('payoutChart');
-  const accent=getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
-  if(chart)chart.destroy();
-  chart=new Chart(ctx,{type:'line',data:{labels:s.map(x=>x.year),datasets:[{label:'Total Payout (RM)',data:s.map(x=>x.total),borderColor:accent,backgroundColor:accent+'20',tension:.25,fill:true,pointRadius:2}]},
-  options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>{const d=s[c.dataIndex];return [`Year: ${d.year}`,`Units: ${d.units}`,`Payout/Unit: RM ${d.perUnit}`,`Total: RM ${d.total.toLocaleString(undefined,{minimumFractionDigits:2})}`]}}}},scales:{y:{ticks:{callback:v=>'RM '+v}}}}});
-}
-function renderDashboard(){
-  const d=DATA[programme];
-  document.getElementById('progLabel1').textContent=programme==='GHR'?'GHR':'DR PLUS';
-  document.getElementById('stat-units').textContent=d.units+' Units';
-  document.getElementById('stat-files').textContent=d.files+' Files';
-  document.getElementById('stat-total').textContent='RM '+d.total.toLocaleString(undefined,{minimumFractionDigits:2});
-  const s=payoutSeries(programme);const last=s[s.length-1];
-  document.getElementById('stat-latest-label').textContent='Latest Payout ('+last.year+')';
-  document.getElementById('stat-latest').textContent='RM '+last.total.toLocaleString(undefined,{minimumFractionDigits:2});
-  document.getElementById('stat-latest-sub').textContent='Paid on '+last.date;
-  renderChart();
-}
-function renderEntitlement(){
-  const d=DATA[programme];
-  document.getElementById('progLabel2').textContent=programme==='GHR'?'GHR':'DR PLUS';
-  document.getElementById('ent-units').textContent=d.units+' Units';
-  document.getElementById('ent-files').textContent=d.files+' Files';
-  let rows='';
-  for(let i=0;i<d.files;i++){
-    const cert=String(d.certPrefix*100+i+1).padStart(10,'0');
-    const file=String(d.filePrefix+i);
-    const units=Math.round(d.units/d.files) || 1;
-    rows+=`<tr><td>${file}</td><td>${cert}</td><td>Maybank</td><td><span id="bankAcc${i}">•••• •••• 1234</span> <button class="link-btn" onclick="toggleEntBank(${i})" aria-label="Show/hide account number">👁</button></td><td><div class="table-actions"><button class="small-btn" onclick="viewCert('${cert}','${file}',${units})">View Certificate</button><button class="small-btn primary" onclick="toast('Certificate download simulated')">Download</button></div></td></tr>`;
-  }
-  document.getElementById('entTable').querySelector('tbody').innerHTML=rows;
-  entBankRevealed=[];
-}
-let entBankRevealed=[];
-function toggleEntBank(i){
-  entBankRevealed[i]=!entBankRevealed[i];
-  document.getElementById('bankAcc'+i).textContent=entBankRevealed[i]?'5123 4567 1234':'•••• •••• 1234';
-}
-function viewCert(cert,file,units){
-  document.getElementById('certModalBody').innerHTML=`<button class="modal-close" onclick="closeModal('certModal')">✕</button><h3>E-Certificate</h3><div class="field-row"><div class="fl">Certificate No.</div><div class="fv">${cert}</div></div><div class="field-row"><div class="fl">File No.</div><div class="fv">${file}</div></div><div class="field-row"><div class="fl">Units</div><div class="fv">${units} Units</div></div><div class="field-row"><div class="fl">Holder</div><div class="fv">Tan Wei Ming</div></div><button class="small-btn primary" style="margin-top:10px" onclick="toast('Certificate download simulated')">Download</button>`;
-  document.getElementById('certModal').classList.add('active');
-}
-let payoutSort='desc';
-function renderPayouts(){
-  document.getElementById('progLabel3').textContent=programme==='GHR'?'GHR':'DR PLUS';
-  let s=payoutSeries(programme);
-  s.sort((a,b)=>payoutSort==='desc'?b.year-a.year:a.year-b.year);
-  document.getElementById('payoutTable').querySelector('tbody').innerHTML=s.map(x=>`<tr><td>${x.year}</td><td>${x.units} Units</td><td>RM ${x.perUnit.toLocaleString(undefined,{minimumFractionDigits:2})}</td><td>RM ${x.total.toLocaleString(undefined,{minimumFractionDigits:2})}</td><td><span class="badge badge-ok">Paid</span></td><td>${x.date}</td><td><button class="link-btn" onclick="viewPayoutDetail(${x.year})">View Details</button></td></tr>`).join('');
-}
-function sortPayouts(v){payoutSort=v;renderPayouts();}
-function viewPayoutDetail(year){
-  const d=DATA[programme];const s=payoutSeries(programme).find(x=>x.year===year);
-  let rows='';const perFile=+(s.total/d.files).toFixed(2);const unitsPerFile=Math.round(d.units/d.files)||1;
-  for(let i=1;i<=d.files;i++)rows+=`<tr><td>File 00${i}</td><td>${unitsPerFile}</td><td>RM ${s.perUnit}</td><td>RM ${perFile.toLocaleString(undefined,{minimumFractionDigits:2})}</td></tr>`;
-  document.getElementById('payoutModalBody').innerHTML=`<button class="modal-close" onclick="closeModal('payoutModal')">✕</button><h3>${year} Payout</h3>
-  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-    <div class="card"><div class="stat-label">Total Files</div><div class="stat-value" style="font-size:18px">${d.files}</div></div>
-    <div class="card"><div class="stat-label">Total Units</div><div class="stat-value" style="font-size:18px">${d.units}</div></div>
-    <div class="card"><div class="stat-label">Total Payout</div><div class="stat-value" style="font-size:18px">RM ${s.total.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
-  </div>
-  <div class="table-wrap"><table><thead><tr><th>File</th><th>Units</th><th>Payout/Unit</th><th>Total</th></tr></thead><tbody>${rows}<tr style="font-weight:700"><td>TOTAL</td><td>${d.units}</td><td>—</td><td>RM ${s.total.toLocaleString(undefined,{minimumFractionDigits:2})}</td></tr></tbody></table></div>
-  <button class="small-btn primary" style="margin-top:12px" onclick="toast('Statement download simulated')">Download Payout Statement</button>
-  <p style="font-size:11.5px;color:var(--text-mute);margin-top:12px">Payouts are subject to the applicable programme terms, eligibility requirements and other conditions. The programme may provide payouts for up to 30 years; the 30-year duration is not guaranteed.</p>`;
-  document.getElementById('payoutModal').classList.add('active');
-}
-function renderStatement(){
-  const sel=document.getElementById('stmtYear');
-  if(!sel.options.length){years().slice(0,4).forEach(y=>sel.appendChild(new Option(y,y)));}
-  const y=sel.value||years()[0];
-  const s=payoutSeries(programme).find(x=>x.year==y);
-  const d=DATA[programme];
-  document.getElementById('stmtBody').innerHTML=`<div class="field-row"><div class="fl">Holder</div><div class="fv">Tan Wei Ming</div></div>
-  <div class="field-row"><div class="fl">Programme</div><div class="fv">${programme==='GHR'?'GHR':'DR PLUS'}</div></div>
-  <div class="field-row"><div class="fl">Units</div><div class="fv">${d.units} Units</div></div>
-  <div class="field-row"><div class="fl">Payout per Unit</div><div class="fv">RM ${s.perUnit}</div></div>
-  <div class="field-row"><div class="fl">Total Payout</div><div class="fv">RM ${s.total.toLocaleString(undefined,{minimumFractionDigits:2})}</div></div>
-  <div class="field-row"><div class="fl">Payment Status</div><span class="badge ${s.status==='Paid'?'badge-ok':'badge-warn'}">${s.status}</span></div>
-  <div class="field-row"><div class="fl">Reference No.</div><div class="fv">STMT-${programme}-${y}-0${DATA[programme].files}</div></div>`;
-}
-/* ---------- NAV ---------- */
-function go(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  document.getElementById('topTitle').textContent=document.querySelector('.nav-item.active').textContent.trim();
-  document.getElementById('sidebar').classList.remove('open');
-  if(page==='estatement')renderStatement();
-}
-function setProgramme(p){
-  programme=p;
-  document.documentElement.setAttribute('data-programme', p==='DRP'?'DRP':'GHR');
-  document.getElementById('pg-GHR').classList.toggle('active',p==='GHR');
-  document.getElementById('pg-DRP').classList.toggle('active',p==='DRP');
-  renderDashboard();renderEntitlement();renderPayouts();renderStatement();
-  toast((p==='GHR'?'GHR':'DR PLUS')+' programme selected');
-}
-function editField(id){
-  const el=document.getElementById(id);
-  const val=prompt('Update value:',el.textContent);
-  if(val){el.textContent=val;toast('Profile updated');}
-}
-let bankRevealed=false;
-function toggleBank(){bankRevealed=!bankRevealed;document.getElementById('bankNo').textContent=bankRevealed?'5123 4567 1234':'•••• •••• 1234';}
-function openBankModal(){document.getElementById('bankStatus').innerHTML='';document.getElementById('bankModal').classList.add('active');}
-function submitBank(){document.getElementById('bankStatus').innerHTML='<div class="badge badge-warn" style="margin-top:10px">Pending Verification</div><p style="font-size:12px;color:var(--text-mute);margin-top:8px">Submitted → Under Review → Approved</p>';toast('Submitted for verification');}
-function closeModal(id){document.getElementById(id).classList.remove('active');}
-function toggleNotif(){document.getElementById('notifPanel').classList.toggle('active');}
-function markAllRead(){document.getElementById('notifDot').style.display='none';document.getElementById('notifPanel').classList.remove('active');}
-function submitEnquiry(){toast('Enquiry submitted — Ref: ENQ-'+Math.floor(100000+Math.random()*900000));}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',2600);}
-function setTheme(v){document.documentElement.setAttribute('data-theme',v);}
-function show(id){document.querySelectorAll('#authCard > div').forEach(d=>d.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');
-  if(id==='view-regdone')setTimeout(doLogin,1400);}
-function doLogin(){
-  document.getElementById('authScreen').style.display='none';
-  document.getElementById('app').classList.add('active');
-  renderDashboard();renderEntitlement();renderPayouts();
-}
-function logout(){document.getElementById('app').classList.remove('active');document.getElementById('authScreen').style.display='flex';show('view-login');}
-document.addEventListener('click',(e)=>{if(!e.target.closest('.notif-panel')&&!e.target.closest('.icon-btn'))document.getElementById('notifPanel').classList.remove('active');});
-</script>
+    <!-- Notification Center Modal -->
+    <div id="modal-notif" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative">
+            <button onclick="closeNotificationModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-900">Notification Center</h3>
+                    <p class="text-xs text-slate-500">Programme updates and alerts</p>
+                </div>
+            </div>
+            <div id="notif-modal-list" class="space-y-3 max-h-96 overflow-y-auto">
+                <!-- Populated by JS -->
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-200 text-center">
+                <button onclick="closeNotificationModal()" class="text-xs font-bold text-emerald-600 hover:underline">Mark all as read</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Article Modal -->
+    <div id="modal-news" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-8 shadow-2xl relative">
+            <button onclick="closeNewsModal()" class="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div id="news-modal-content" class="space-y-4">
+                <!-- Populated by JS -->
+            </div>
+            <div class="mt-8 pt-4 border-t border-slate-200 flex justify-end">
+                <button onclick="closeNewsModal()" class="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm">Close Article</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 translate-y-24 opacity-0 transition-all duration-300 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
+            <i data-lucide="check" class="w-4 h-4"></i>
+        </div>
+        <div>
+            <div class="text-xs font-bold text-slate-400">System Notification</div>
+            <div id="toast-msg" class="text-sm font-bold text-white">Action completed successfully.</div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        let currentProgramme = 'ghr'; // 'ghr' or 'drplus'
+        let currentTab = 'dashboard';
+        let payoutChartInstance = null;
+
+        // Mock data repositories for GHR vs DR PLUS
+        const programmeData = {
+            ghr: {
+                name: 'GHR PROGRAMME',
+                badgeText: 'GOLDEN HARVEST REWARD',
+                accentColor: 'emerald',
+                primaryColorHex: '#16a34a',
+                totalUnits: '128 Units',
+                fileCount: '24 Files',
+                latestPayout: 'RM 2,400',
+                totalPayout: 'RM 28,800',
+                miniDesc: 'Broad-acre agricultural harvest portfolio with quarterly distributions.',
+                chartLabels: ['Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026', 'Q2 2026', 'Q3 2026'],
+                chartValues: [1800, 2100, 1950, 2200, 2350, 2400],
+                payouts: [
+                    { id: 'TXN-88214', date: '15 Oct 2026', period: 'Q3 2026 Harvest', units: '128 Units', amount: 'RM 2,400.00', status: 'Disbursed' },
+                    { id: 'TXN-74102', date: '14 Jul 2026', period: 'Q2 2026 Harvest', units: '128 Units', amount: 'RM 2,350.00', status: 'Disbursed' },
+                    { id: 'TXN-65901', date: '12 Apr 2026', period: 'Q1 2026 Harvest', units: '120 Units', amount: 'RM 2,200.00', status: 'Disbursed' },
+                    { id: 'TXN-51299', date: '15 Jan 2026', period: 'Q4 2025 Harvest', units: '120 Units', amount: 'RM 1,950.00', status: 'Disbursed' }
+                ],
+                files: [
+                    { id: 'FILE-GHR-001', name: 'Golden Harvest Sector A-4', units: '32 Units', date: 'Jan 2024', status: 'Verified' },
+                    { id: 'FILE-GHR-002', name: 'Golden Harvest Sector B-9', units: '48 Units', date: 'Jun 2024', status: 'Verified' },
+                    { id: 'FILE-GHR-003', name: 'Golden Harvest Sector C-2', units: '48 Units', date: 'Nov 2025', status: 'Verified' }
+                ],
+                notifications: [
+                    { title: 'Q3 Payout Credited', time: 'Yesterday', desc: 'RM 2,400 successfully transferred to your Maybank account.' },
+                    { title: 'Annual Harvest Audit', time: '3 days ago', desc: 'Independent agricultural audit report for GHR plots is now available.' }
+                ]
+            },
+            drplus: {
+                name: 'DR PLUS PROGRAMME',
+                badgeText: 'DURIAN REWARD PLUS',
+                accentColor: 'blue',
+                primaryColorHex: '#2563eb',
+                totalUnits: '80 Units',
+                fileCount: '16 Files',
+                latestPayout: 'RM 3,600',
+                totalPayout: 'RM 34,200',
+                miniDesc: 'Specialized premium Musang King durian cultivation program with high-growth returns.',
+                chartLabels: ['Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026', 'Q2 2026', 'Q3 2026'],
+                chartValues: [2800, 3100, 2950, 3400, 3500, 3600],
+                payouts: [
+                    { id: 'DR-99214', date: '18 Oct 2026', period: 'Q3 2026 Durian Yield', units: '80 Units', amount: 'RM 3,600.00', status: 'Disbursed' },
+                    { id: 'DR-81202', date: '16 Jul 2026', period: 'Q2 2026 Durian Yield', units: '80 Units', amount: 'RM 3,500.00', status: 'Disbursed' },
+                    { id: 'DR-73401', date: '14 Apr 2026', period: 'Q1 2026 Durian Yield', units: '70 Units', amount: 'RM 3,400.00', status: 'Disbursed' },
+                    { id: 'DR-62199', date: '18 Jan 2026', period: 'Q4 2025 Durian Yield', units: '70 Units', amount: 'RM 2,950.00', status: 'Disbursed' }
+                ],
+                files: [
+                    { id: 'FILE-DR-101', name: 'Musang King Plot Raub-1', units: '40 Units', date: 'Mar 2024', status: 'Verified' },
+                    { id: 'FILE-DR-102', name: 'Musang King Plot Bentong-4', units: '40 Units', date: 'Aug 2025', status: 'Verified' }
+                ],
+                notifications: [
+                    { title: 'DR PLUS Payout Credited', time: 'Yesterday', desc: 'RM 3,600 successfully transferred to your Maybank account.' },
+                    { title: 'New Orchard Expansion', time: '5 days ago', desc: 'Phase 2 durian acreage in Pahang successfully integrated.' }
+                ]
+            }
+        };
+
+        // Initialize Lucide icons on load
+        window.onload = function () {
+            lucide.createIcons();
+            initChart();
+            updatePortalUI();
+        };
+
+        // Smooth scroll helper
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // FAQ Toggle
+        function toggleFaq(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+
+        // Toast notification system
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            msgEl.innerText = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        // Modal Controls
+        function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('modal-login').classList.add('hidden'); }
+
+        function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
+        function closeRegisterModal() { document.getElementById('modal-register').classList.add('hidden'); }
+
+        function openCertModal(fileId) { 
+            document.getElementById('cert-serial').innerText = 'SN-' + fileId + '-2026';
+            document.getElementById('modal-cert').classList.remove('hidden'); 
+        }
+        function closeCertModal() { document.getElementById('modal-cert').classList.add('hidden'); }
+
+        function openStatementModal() { document.getElementById('modal-statement').classList.remove('hidden'); }
+        function closeStatementModal() { document.getElementById('modal-statement').classList.add('hidden'); }
+
+        function openBankOtpModal() { document.getElementById('modal-otp').classList.remove('hidden'); }
+        function closeBankOtpModal() { document.getElementById('modal-otp').classList.add('hidden'); }
+
+        function openNotificationModal() {
+            renderNotifications();
+            document.getElementById('modal-notif').classList.remove('hidden');
+        }
+        function closeNotificationModal() { document.getElementById('modal-notif').classList.add('hidden'); }
+
+        function openProgrammeModal(progKey) {
+            const content = document.getElementById('prog-modal-content');
+            if (progKey === 'ghr') {
+                content.innerHTML = `
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
+                        <i data-lucide="sprout" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-900">Golden Harvest Reward (GHR)</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mt-2">
+                        GHR is our premier broad-acre agricultural management initiative. Participants receive verifiable unit allocations tied to high-yield sustainable farming sectors across Malaysia.
+                    </p>
+                    <div class="space-y-2 pt-4 border-t border-slate-200">
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>Quarterly disbursements</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>Full digital certificates</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>Independent agricultural audits</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-900">Durian Reward Plus (DR PLUS)</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mt-2">
+                        DR PLUS is a specialized high-value cultivation program focusing on premium Musang King and Black Thorn durian orchards with robust international export demand.
+                    </p>
+                    <div class="space-y-2 pt-4 border-t border-slate-200">
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i>High-growth export markets</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i>Accelerated payout cycles</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-700"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i>Dedicated relationship concierge</div>
+                    </div>
+                `;
+            }
+            document.getElementById('modal-programme').classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeProgrammeModal() { document.getElementById('modal-programme').classList.add('hidden'); }
+
+        function openNewsModal(articleId) {
+            const content = document.getElementById('news-modal-content');
+            if (articleId === 'q3') {
+                content.innerHTML = `
+                    <span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">GHR Update</span>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mt-2">Q3 Harvest Yield Exceeds Projections by 14.2%</h3>
+                    <p class="text-xs text-slate-400">October 14, 2026</p>
+                    <p class="text-sm text-slate-600 leading-relaxed mt-4">
+                        Participants in the GHR programme will see enhanced quarterly distributions reflecting record agricultural output across our Pahang and Johor sectors. Favorable weather conditions and advanced soil management protocols have resulted in superior crop yields this quarter.
+                    </p>
+                `;
+            } else if (articleId === 'durian') {
+                content.innerHTML = `
+                    <span class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">DR PLUS</span>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mt-2">Expansion of Musang King Cultivation Sectors</h3>
+                    <p class="text-xs text-slate-400">September 28, 2026</p>
+                    <p class="text-sm text-slate-600 leading-relaxed mt-4">
+                        New premium land plots in Raub and Bentong have been successfully integrated into the DR PLUS portfolio following rigorous third-party agricultural audit. This expansion increases total cultivating acreage by 25%.
+                    </p>
+                `;
+            } else {
+                content.innerHTML = `
+                    <span class="px-3 py-1 rounded-lg bg-teal-100 text-teal-800 text-xs font-bold">Security</span>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mt-2">Enhanced Two-Factor Authentication Released</h3>
+                    <p class="text-xs text-slate-400">September 10, 2026</p>
+                    <p class="text-sm text-slate-600 leading-relaxed mt-4">
+                        Portal security has been upgraded with seamless biometric and OTP verification options for all customer accounts to ensure maximum protection of sensitive banking information.
+                    </p>
+                `;
+            }
+            document.getElementById('modal-news').classList.remove('hidden');
+        }
+        function closeNewsModal() { document.getElementById('modal-news').classList.add('hidden'); }
+
+
+        function handleLoginSubmit(event) {
+            event.preventDefault();
+            closeLoginModal();
+            showToast('Login successful. Entering customer portal...');
+            setTimeout(() => {
+                document.getElementById('public-view').classList.add('hidden');
+                document.getElementById('portal-view').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                updatePortalUI();
+            }, 800);
+        }
+
+        function handleRegisterSubmit(event) {
+            event.preventDefault();
+            closeRegisterModal();
+            showToast('Registration request submitted! Check your email for portal credentials.');
+        }
+
+        function enterPortalDemo() {
+            showToast('Loading secure customer portal...');
+            setTimeout(() => {
+                document.getElementById('public-view').classList.add('hidden');
+                document.getElementById('portal-view').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                updatePortalUI();
+            }, 600);
+        }
+
+        function exitPortal() {
+            showToast('Logged out securely.');
+            setTimeout(() => {
+                document.getElementById('portal-view').classList.add('hidden');
+                document.getElementById('public-view').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 500);
+        }
+
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            showToast('Inquiry sent successfully! Our concierge will reply within 24 hours.');
+            event.target.reset();
+        }
+
+
+        function switchProgramme(progKey) {
+            currentProgramme = progKey;
+            
+            // Update Switcher Buttons UI
+            const btnGhr = document.getElementById('btn-switch-ghr');
+            const btnDr = document.getElementById('btn-switch-drplus');
+            
+            if (progKey === 'ghr') {
+                btnGhr.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-md flex items-center gap-2";
+                btnDr.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
+            } else {
+                btnDr.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-md flex items-center gap-2";
+                btnGhr.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2";
+            }
+
+            updatePortalUI();
+            showToast(`Switched to ${progKey === 'ghr' ? 'Golden Harvest Reward (GHR)' : 'Durian Reward Plus (DR PLUS)'}`);
+        }
+
+        function updatePortalUI() {
+            const data = programmeData[currentProgramme];
+
+            // Header elements
+            document.getElementById('portal-badge-text').innerText = data.name;
+            const brandIcon = document.getElementById('portal-brand-icon');
+            const logoIcon = document.getElementById('portal-logo-i');
+            
+            if (currentProgramme === 'ghr') {
+                brandIcon.className = "w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md transition-colors duration-500";
+                logoIcon.setAttribute('data-lucide', 'sprout');
+            } else {
+                brandIcon.className = "w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md transition-colors duration-500";
+                logoIcon.setAttribute('data-lucide', 'award');
+            }
+
+            // Dashboard Metric Cards
+            document.getElementById('val-total-units').innerText = data.totalUnits;
+            document.getElementById('val-file-count').innerText = data.fileCount;
+            document.getElementById('val-latest-payout').innerText = data.latestPayout;
+            document.getElementById('val-total-payout').innerText = data.totalPayout;
+
+            // Sidebar Mini Card styling
+            const sidebarCard = document.getElementById('sidebar-mini-card');
+            const sidebarBgIcon = document.getElementById('sidebar-bg-icon');
+            if (currentProgramme === 'ghr') {
+                sidebarCard.className = "bg-emerald-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-colors duration-500";
+                sidebarBgIcon.setAttribute('data-lucide', 'sprout');
+            } else {
+                sidebarCard.className = "bg-blue-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-colors duration-500";
+                sidebarBgIcon.setAttribute('data-lucide', 'award');
+            }
+            document.getElementById('sidebar-prog-name').innerText = data.name;
+            document.getElementById('sidebar-prog-desc').innerText = data.miniDesc;
+
+            // Tables & Portfolios
+            renderDashboardPayouts();
+            renderFullPayouts();
+            renderPortfolioFiles();
+            updateChart();
+
+            lucide.createIcons();
+        }
+
+        function renderDashboardPayouts() {
+            const data = programmeData[currentProgramme].payouts.slice(0, 3);
+            const tbody = document.getElementById('dash-payouts-tbody');
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="py-4 font-mono font-bold text-slate-900">${item.id}</td>
+                    <td class="py-4 text-slate-600">${item.period}</td>
+                    <td class="py-4 text-slate-600">${item.units}</td>
+                    <td class="py-4 font-bold text-slate-900">${item.amount}</td>
+                    <td class="py-4"><span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">${item.status}</span></td>
+                    <td class="py-4 text-right"><button onclick="showToast('Viewing receipt ${item.id}')" class="text-xs font-bold text-emerald-600 hover:underline">Receipt</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderFullPayouts() {
+            const data = programmeData[currentProgramme].payouts;
+            const tbody = document.getElementById('full-payouts-tbody');
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="py-4 font-mono font-bold text-slate-900">${item.id}</td>
+                    <td class="py-4 text-slate-600">${item.date}</td>
+                    <td class="py-4 text-slate-600">${item.period}</td>
+                    <td class="py-4 text-slate-600">${item.units}</td>
+                    <td class="py-4 font-bold text-slate-900">${item.amount}</td>
+                    <td class="py-4"><span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">${item.status}</span></td>
+                    <td class="py-4 text-right"><button onclick="showToast('Downloading receipt for ${item.id}')" class="text-xs font-bold text-blue-600 hover:underline flex items-center justify-end gap-1"><i data-lucide="download" class="w-3.5 h-3.5"><span>PDF</span></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPortfolioFiles() {
+            const files = programmeData[currentProgramme].files;
+            const grid = document.getElementById('portfolio-files-grid');
+            const accentBg = currentProgramme === 'ghr' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-blue-50 text-blue-600 border-blue-200';
+            const btnBg = currentProgramme === 'ghr' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700';
+
+            grid.innerHTML = files.map(f => `
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 rounded-lg ${accentBg} text-xs font-extrabold uppercase">${f.status}</span>
+                            <span class="text-xs font-mono text-slate-400">${f.id}</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">${f.name}</h4>
+                        <div class="space-y-2 text-xs text-slate-500 mb-6">
+                            <div class="flex justify-between"><span>Allocation Units:</span><strong class="text-slate-900">${f.units}</strong></div>
+                            <div class="flex justify-between"><span>Issue Date:</span><strong class="text-slate-900">${f.date}</strong></div>
+                        </div>
+                    </div>
+                    <button onclick="openCertModal('${f.id}')" class="w-full py-3 rounded-xl ${btnBg} text-white font-bold text-xs shadow-md flex items-center justify-center gap-2">
+                        <i data-lucide="award" class="w-4 h-4"></i>
+                        <span>View Digital Certificate</span>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderNotifications() {
+            const notifs = programmeData[currentProgramme].notifications;
+            const list = document.getElementById('notif-modal-list');
+            list.innerHTML = notifs.map(n => `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-all">
+                    <div class="flex items-center justify-between mb-1">
+                        <h5 class="text-sm font-bold text-slate-900">${n.title}</h5>
+                        <span class="text-[10px] text-slate-400">${n.time}</span>
+                    </div>
+                    <p class="text-xs text-slate-600">${n.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        // Sidebar Tab Navigation
+        function switchTab(tabName) {
+            currentTab = tabName;
+            const tabs = ['dashboard', 'portfolio', 'payouts', 'profile', 'support'];
+            
+            tabs.forEach(t => {
+                const contentEl = document.getElementById(`tab-content-${t}`);
+                const btnEl = document.getElementById(`tab-btn-${t}`);
+                
+                if (t === tabName) {
+                    contentEl.classList.remove('hidden');
+                    btnEl.className = currentProgramme === 'ghr' 
+                        ? "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all bg-emerald-50 text-emerald-700" 
+                        : "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all bg-blue-50 text-blue-700";
+                } else {
+                    contentEl.classList.add('hidden');
+                    btnEl.className = "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-50";
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+        function initChart() {
+            const ctx = document.getElementById('payoutChart').getContext('2d');
+            const data = programmeData[currentProgramme];
+
+            payoutChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.chartLabels,
+                    datasets: [{
+                        label: 'Payout Amount (RM)',
+                        data: data.chartValues,
+                        backgroundColor: currentProgramme === 'ghr' ? '#16a34a' : '#2563eb',
+                        borderRadius: 10,
+                        barThickness: 'flex',
+                        maxBarThickness: 45
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Plus Jakarta Sans' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!payoutChartInstance) return;
+            const data = programmeData[currentProgramme];
+            payoutChartInstance.data.labels = data.chartLabels;
+            payoutChartInstance.data.datasets[0].data = data.chartValues;
+            payoutChartInstance.data.datasets[0].backgroundColor = currentProgramme === 'ghr' ? '#16a34a' : '#2563eb';
+            payoutChartInstance.update();
+        }
+
+        // Chat Message Simulation
+        function sendPortalMessage() {
+            const input = document.getElementById('chat-input-field');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const container = document.getElementById('chat-messages-container');
+            
+            // Append user message
+            container.innerHTML += `
+                <div class="flex items-start gap-3 justify-end">
+                    <div class="bg-emerald-600 text-white p-4 rounded-2xl rounded-tr-none max-w-md shadow-md">
+                        <p class="text-xs font-bold text-emerald-100 mb-1">You</p>
+                        <p class="text-sm">${text}</p>
+                        <span class="text-[10px] text-emerald-200 mt-1 block text-right">Just now</span>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-8 h-8 rounded-lg object-cover">
+                </div>
+            `;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            // Simulate reply
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">AT</div>
+                        <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-slate-200 max-w-md shadow-sm">
+                            <p class="text-xs font-bold text-slate-900 mb-1">Aiden Tan</p>
+                            <p class="text-sm text-slate-700">Thank you for your message. I have noted this down and will update your file registry shortly.</p>
+                            <span class="text-[10px] text-slate-400 mt-1 block">Just now</span>
+                        </div>
+                    </div>
+                `;
+                container.scrollTop = container.scrollHeight;
+            }, 1200);
+        }
+    </script>
+
 </body>
 </html>
